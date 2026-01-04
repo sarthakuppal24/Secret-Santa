@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Secret Santa</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #020617;
+    color: #e5e7eb;
+  }
+
+  #progressWrap {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    height: 6px;
+    background: #020617;
+    z-index: 99;
+  }
+  #progressBar {
+    height: 100%;
+    width: 0%;
+    background: #22c55e;
+    transition: width 0.6s ease;
+  }
+
+  .container {
+    padding: 60px 16px 40px;
+    max-width: 640px;
+    margin: auto;
+  }
+
+  h1 {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+
+  .long-text {
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: justify;
+    user-select: none;
+    opacity: 0.9;
+    white-space: pre-wrap;
+  }
+
+  input, button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    margin-top: 12px;
+  }
+
+  button {
+    background: #22c55e;
+    font-weight: bold;
+  }
+
+  .hint {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-top: 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="progressWrap">
+  <div id="progressBar"></div>
+</div>
+
+<div class="container">
+  <h1 id="title"></h1>
+  <div id="content"></div>
+  <input id="answer" style="display:none" placeholder="Your answer"/>
+  <button id="actionBtn" onclick="handleAction()">Start</button>
+  <div class="hint" id="hint"></div>
+</div>
+
+<script>
+let round = 0;
+let progress = 0;
+let currentAnswer = "";
+let currentCharIndex = 0;
+
+const paragraphBase = `
+In large corporate buildings where glass reflects thoughts and elevators carry silent ambitions, people often forget how attention slowly fades. Meetings blur into one another, notifications interrupt focus, and even simple instructions become surprisingly difficult to follow. This text exists not to convey meaning but to test patience, discipline, and observation. Somewhere between irrelevant ideas, unnecessary explanations, emotional distractions, Telugu words like ఆలోచన and సంఖ్య, random commas, excessive spacing, and deliberately stretched sentences lies a single character that matters. The human brain naturally seeks shortcuts, patterns, and escape routes, but this challenge punishes haste and rewards calm effort. Read carefully, count honestly, and remember that spaces, punctuation, and line breaks are all characters too. One careless scroll or miscount resets the journey entirely. This paragraph continues longer than expected, introducing concepts that seem important but are not, revisiting ideas already stated, and adding mild frustration intentionally. If you are still reading attentively, you are doing better than most. The answer is not hidden cleverly; it is hidden plainly. That is the trick.
+`;
+
+function shuffleText(text) {
+  return text.split(" ").sort(() => Math.random() - 0.5).join(" ");
+}
+
+function fakeProgress() {
+  progress += Math.floor(Math.random() * 6) + 4;
+  if (progress > 85) progress = 85;
+  document.getElementById("progressBar").style.width = progress + "%";
+}
+
+function startGame() {
+  round = 1;
+  document.getElementById("actionBtn").innerText = "Submit";
+  document.getElementById("answer").style.display = "block";
+  loadRound();
+}
+
+function loadRound() {
+  fakeProgress();
+  document.getElementById("answer").value = "";
+
+  if (round === 1) {
+    // Shorter paragraph
+    const basePara = `
+    In busy office buildings, glass reflects ambitions and elevators carry silent thoughts. Meetings blur, notifications distract, and instructions are easily forgotten. This text is designed to test patience, focus, and observation. Between irrelevant sentences, Telugu words like ఆలోచన, random commas, and slightly stretched ideas, lies the character you need. Count carefully, including spaces and punctuation. One careless move resets everything. Keep calm and read slowly, because haste is punished and attention rewarded.
+    `;
+
+    // Shuffle words to add difficulty
+    const text = basePara.split(" ").sort(() => Math.random() - 0.5).join(" ");
+
+    // Character index always between 200 - 600
+    const minIndex = 50;
+    const maxIndex = Math.min(600, text.length - 1);
+    const idx = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
+
+    currentAnswer = text.charAt(idx);
+    currentCharIndex = idx;
+
+    document.getElementById("title").innerText =
+      "Round 1 — Attention Test";
+
+    document.getElementById("content").innerHTML =
+      `<div class="long-text">${text}</div>`;
+
+    document.getElementById("hint").innerText =
+      `Tell the character at position ${idx} (count everything including spaces).`;
+  }
+
+  else if (round === 2) {
+    const q = round2Questions[Math.floor(Math.random() * round2Questions.length)];
+    currentAnswer = q.a;
+
+    document.getElementById("title").innerText = "Round 2 — Logic";
+    document.getElementById("content").innerHTML = q.q;
+    document.getElementById("hint").innerText =
+      "Think carefully. AI won’t help here.";
+  }
+
+  else if (round === 3) {
+    const q = round3Questions[Math.floor(Math.random() * round3Questions.length)];
+    currentAnswer = q.a;
+
+    document.getElementById("title").innerText = "Round 3 — Last Test";
+    document.getElementById("content").innerHTML = q.q;
+    document.getElementById("hint").innerText =
+      "No hints now. Trust your brain.";
+  }
+}
+
+
+function handleAction() {
+  if (round === 0) {
+    startGame();
+    return;
+  }
+
+  const user = document.getElementById("answer").value;
+
+  if (user === currentAnswer) {
+    round++;
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("title").innerText = "You’re done.";
+    document.getElementById("content").innerHTML =
+      "Where small white crystals disappear into warm darkness before meetings.";
+    document.getElementById("hint").innerText =
+      "The journey continues physically.";
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("actionBtn").style.display = "none";
+  } else {
+    fakeProgress();
+    loadRound(); // same round, new torture
+  }
+}
+
+document.getElementById("title").innerText =
+  "Hi Lavanya 👋 Your Secret Santa has something planned";
+document.getElementById("content").innerHTML =
+  "This is not quick. This is not easy. Start only if you’re patient.";
+document.getElementById("hint").innerText =
+  "Wrong answers change everything.";
+</script>
+
+</body>
+</html>
