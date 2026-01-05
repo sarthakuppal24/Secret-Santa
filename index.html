@@ -125,8 +125,8 @@ function loadRound() {
     const text = basePara.split(" ").sort(() => Math.random() - 0.5).join(" ");
 
     // Character index always between 200 - 600
-    const minIndex = 50;
-    const maxIndex = Math.min(600, text.length - 1);
+    const minIndex = 5;
+    const maxIndex = Math.min(100, text.length - 1);
     const idx = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
 
     currentAnswer = text.charAt(idx);
